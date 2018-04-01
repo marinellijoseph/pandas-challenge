@@ -1,606 +1,189 @@
-# Heroes Of Pymoli Data Analysis
+## Unit 4 | Assignment - Pandas, Pandas, Pandas
 
-* Of the 1163 active players, the vast majority are male (82%). There also exists, a smaller, but notable proportion of female players (16%).
+## Background
 
-* Our peak age demographic falls between 20-24 (42%) with secondary groups falling between 15-19 (17.80%) and 25-29 (15.48%).
+The data dive continues!
 
-* Our players are putting in significant cash during the lifetime of their gameplay. Across all major age and gender demographics, the average purchase for a user is roughly $491.   
+Now, it's time to take what you've learned about Python Pandas and apply it to new situations. For this assignment, you'll need to complete **1 of 2**  Data Challenges. Once again, it's your choice which you choose. Just be sure to give it your all -- as the skills you hone will become powerful tools in your data analytics tool belt.
 
-- - -
+## Option 1: Heroes of Pymoli
 
-```python
-# Dependencies and Setup
-import pandas as pd
-import numpy as np
+![Fantasy](Images/Fantasy.jpg)
 
-# File to Load (Remember to Change These)
-file_to_load_json = "raw_data/purchase_data.json"
+Congratulations! After a lot of hard work in the data munging mines, you've landed a job as Lead Analyst for an independent gaming company. You've been assigned the task of analyzing the data for their most recent fantasy game Heroes of Pymoli. 
 
-# Read Purchasing File and store into Pandas data frame
-purchase_data = pd.read_json(file_to_load_json, orient="records")
-```
+Like many others in its genre, the game is free-to-play, but players are encouraged to purchase optional items that enhance their playing experience. As a first task, the company would like you to generate a report that breaks down the game's purchasing data into meaningful insights.
 
-## Player Count
+Your final report should include each of the following:
 
-```python
-# Calculate the Number of Unique Players
-player_demographics = purchase_data.loc[:, ["Gender", "SN", "Age"]]
-player_demographics = player_demographics.drop_duplicates()
-num_players = player_demographics.count()[0]
+**Player Count**
 
-# Display the total number of players
-pd.DataFrame({"Total Players": [num_players]})
-```
+* Total Number of Players
 
-<div>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>Total Players</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>1163</td>
-    </tr>
-  </tbody>
-</table>
-</div>
+**Purchasing Analysis (Total)**
 
-## Purchasing Analysis (Total)
+* Number of Unique Items
+* Average Purchase Price
+* Total Number of Purchases
+* Total Revenue
 
-```python
-# Run basic calculations
-average_item_price = purchase_data["Price"].mean()
-total_purchase_value = purchase_data["Price"].sum()
-purchase_count = purchase_data["Price"].count()
-item_count = len(purchase_data["Item ID"].unique())
+**Gender Demographics**
 
-# Create a DataFrame to hold results
-summary_table = pd.DataFrame({"Number of Unique Items": item_count,
-                              "Total Revenue": [total_purchase_value],
-                              "Number of Purchases": [purchase_count],
-                              "Average Price": [average_item_price]})
+* Percentage and Count of Male Players
+* Percentage and Count of Female Players
+* Percentage and Count of Other / Non-Disclosed
 
-# Minor Data Munging
-summary_table = summary_table.round(2)
-summary_table ["Average Price"] = summary_table["Average Price"].map("${:,.2f}".format)
-summary_table ["Number of Purchases"] = summary_table["Number of Purchases"].map("{:,}".format)
-summary_table ["Total Revenue"] = summary_table["Total Revenue"].map("${:,.2f}".format)
-summary_table = summary_table.loc[:,["Number of Unique Items", "Average Price", "Number of Purchases", "Total Revenue"]]
+**Purchasing Analysis (Gender)** 
 
-# Display the summary_table
-summary_table
-```
+* The below each broken by gender
+  * Purchase Count
+  * Average Purchase Price
+  * Total Purchase Value
+  * Normalized Totals
 
-<div>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>Number of Unique Items</th>
-      <th>Average Price</th>
-      <th>Number of Purchases</th>
-      <th>Total Revenue</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>184</td>
-      <td>$2.98</td>
-      <td>192,056</td>
-      <td>$571,654.35</td>
-    </tr>
-  </tbody>
-</table>
-</div>
+**Age Demographics**
 
-## Gender Demographics
+* The below each broken into bins of 4 years (i.e. &lt;10, 10-14, 15-19, etc.) 
+  * Purchase Count
+  * Average Purchase Price
+  * Total Purchase Value
+  * Normalized Totals
 
-```python
-# Calculate the Number and Percentage by Gender
-gender_demographics_totals = player_demographics["Gender"].value_counts()
-gender_demographics_percents = gender_demographics_totals / num_players * 100
-gender_demographics = pd.DataFrame({"Total Count": gender_demographics_totals, "Percentage of Players": gender_demographics_percents})
+**Top Spenders**
 
-# Minor Data Munging
-gender_demographics = gender_demographics.round(2)
+* Identify the the top 5 spenders in the game by total purchase value, then list (in a table):
+  * SN
+  * Purchase Count
+  * Average Purchase Price
+  * Total Purchase Value
 
-gender_demographics
-```
+**Most Popular Items**
 
-<div>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>Percentage of Players</th>
-      <th>Total Count</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>Male</th>
-      <td>81.94</td>
-      <td>953</td>
-    </tr>
-    <tr>
-      <th>Female</th>
-      <td>16.08</td>
-      <td>187</td>
-    </tr>
-    <tr>
-      <th>Other / Non-Disclosed</th>
-      <td>1.98</td>
-      <td>23</td>
-    </tr>
-  </tbody>
-</table>
-</div>
+* Identify the 5 most popular items by purchase count, then list (in a table):
+  * Item ID
+  * Item Name
+  * Purchase Count
+  * Item Price
+  * Total Purchase Value
 
-## Purchasing Analysis (Gender)
+**Most Profitable Items**
 
-```python
-# Run basic calculations
-gender_purchase_total = purchase_data.groupby(["Gender"]).sum()["Price"].rename("Total Purchase Value")
-gender_average = purchase_data.groupby(["Gender"]).mean()["Price"].rename("Average Purchase Price")
-gender_counts = purchase_data.groupby(["Gender"]).count()["Price"].rename("Purchase Count")
+* Identify the 5 most profitable items by total purchase value, then list (in a table):
+  * Item ID
+  * Item Name
+  * Purchase Count
+  * Item Price
+  * Total Purchase Value
 
-# Calculate Normalized Purchasing
-normalized_total = gender_purchase_total / gender_demographics["Total Count"]
+As final considerations:
 
-# Convert to DataFrame
-gender_data = pd.DataFrame({"Purchase Count": gender_counts, "Average Purchase Price": gender_average, "Total Purchase Value": gender_purchase_total, "Normalized Totals": normalized_total})
+* Your script must work for both data-sets given.
+* You must use the Pandas Library and the Jupyter Notebook.
+* You must submit a link to your Jupyter Notebook with the viewable Data Frames. 
+* You must include an exported markdown version of your Notebook called  `README.md` in your GitHub repository.  
+* You must include a written description of three observable trends based on the data. 
+* See [Example Solution](HeroesOfPymoli/HeroesOfPymoli_Example.pdf) for a reference on expected format. 
 
-# Minor Data Munging
-gender_data["Average Purchase Price"] = gender_data["Average Purchase Price"].map("${:,.2f}".format)
-gender_data["Total Purchase Value"] = gender_data["Total Purchase Value"].map("${:,.2f}".format)
-gender_data ["Purchase Count"] = gender_data["Purchase Count"].map("{:,}".format)
-gender_data["Normalized Totals"] = gender_data["Normalized Totals"].map("${:,.2f}".format)
-gender_data = gender_data.loc[:, ["Purchase Count", "Average Purchase Price", "Total Purchase Value", "Normalized Totals"]]
+## Option 2: Academy of Py
 
-# Display the Gender Table
-gender_data
-```
+![Education](Images/education.jpg)
 
-<div>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>Purchase Count</th>
-      <th>Average Purchase Price</th>
-      <th>Total Purchase Value</th>
-      <th>Normalized Totals</th>
-    </tr>
-    <tr>
-      <th>Gender</th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>Female</th>
-      <td>30,894</td>
-      <td>$2.98</td>
-      <td>$92,130.15</td>
-      <td>$492.67</td>
-    </tr>
-    <tr>
-      <th>Male</th>
-      <td>157,426</td>
-      <td>$2.98</td>
-      <td>$468,404.32</td>
-      <td>$491.51</td>
-    </tr>
-    <tr>
-      <th>Other / Non-Disclosed</th>
-      <td>3,736</td>
-      <td>$2.98</td>
-      <td>$11,119.88</td>
-      <td>$483.47</td>
-    </tr>
-  </tbody>
-</table>
-</div>
+Well done! Having spent years analyzing financial records for big banks, you've finally scratched your idealistic itch and joined the education sector. In your latest role, you've become the Chief Data Scientist for your city's school district. In this capacity, you'll be helping the  school board and mayor make strategic decisions regarding future school budgets and priorities.
 
-## Age Demographics
+As a first task, you've been asked to analyze the district-wide standardized test results. You'll be given access to every student's math and reading scores, as well as various information on the schools they attend. Your responsibility is to aggregate the data to and showcase obvious trends in school performance. 
 
-```python
-# Establish the bins 
-age_bins = [0, 9.90, 14.90, 19.90, 24.90, 29.90, 34.90, 39.90, 99999]
-group_names = ["<10", "10-14", "15-19", "20-24", "25-29", "30-34", "35-39", "40+"]
+Your final report should include each of the following:
 
-# Categorize the existing players using the age bins
-player_demographics["Age Ranges"] = pd.cut(player_demographics["Age"], age_bins, labels=group_names)
+**District Summary**
 
-# Calculate the Numbers and Percentages by Age Group
-age_demographics_totals = player_demographics["Age Ranges"].value_counts()
-age_demographics_percents = age_demographics_totals / num_players * 100
-age_demographics = pd.DataFrame({"Total Count": age_demographics_totals, "Percentage of Players": age_demographics_percents})
+* Create a high level snapshot (in table form) of the district's key metrics, including:
+  * Total Schools
+  * Total Students
+  * Total Budget
+  * Average Math Score
+  * Average Reading Score
+  * % Passing Math
+  * % Passing Reading
+  * Overall Passing Rate (Average of the above two)
 
-# Minor Data Munging
-age_demographics = age_demographics.round(2)
+**School Summary**
 
-# Display Age Demographics Table
-age_demographics.sort_index()
-```
+* Create an overview table that summarizes key metrics about each school, including:
+  * School Name
+  * School Type
+  * Total Students
+  * Total School Budget
+  * Per School Budget
+  * Average Math Score
+  * Average Reading Score
+  * % Passing Math
+  * % Passing Reading
+  * Overall Passing Rate (Average of the above two)
 
-<div>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>Percentage of Players</th>
-      <th>Total Count</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>&lt;10</th>
-      <td>3.96</td>
-      <td>46</td>
-    </tr>
-    <tr>
-      <th>10-14</th>
-      <td>4.99</td>
-      <td>58</td>
-    </tr>
-    <tr>
-      <th>15-19</th>
-      <td>17.80</td>
-      <td>207</td>
-    </tr>
-    <tr>
-      <th>20-24</th>
-      <td>42.05</td>
-      <td>489</td>
-    </tr>
-    <tr>
-      <th>25-29</th>
-      <td>15.48</td>
-      <td>180</td>
-    </tr>
-    <tr>
-      <th>30-34</th>
-      <td>8.77</td>
-      <td>102</td>
-    </tr>
-    <tr>
-      <th>35-39</th>
-      <td>5.42</td>
-      <td>63</td>
-    </tr>
-    <tr>
-      <th>40+</th>
-      <td>1.55</td>
-      <td>18</td>
-    </tr>
-  </tbody>
-</table>
-</div>
+**Top Performing Schools (By Passing Rate)**
 
-## Purchasing Analysis (Age)
+* Create a table that highlights the top 5 performing schools based on Overall Passing Rate. Include:
+  * School Name
+  * School Type
+  * Total Students
+  * Total School Budget
+  * Per School Budget
+  * Average Math Score
+  * Average Reading Score
+  * % Passing Math
+  * % Passing Reading
+  * Overall Passing Rate (Average of the above two)
 
-```python
-# Bin the Purchasing Data
-purchase_data["Age Ranges"] = pd.cut(purchase_data["Age"], age_bins, labels=group_names)
+**Top Performing Schools (By Passing Rate)**
 
-# Run basic calculations
-age_purchase_total = purchase_data.groupby(["Age Ranges"]).sum()["Price"].rename("Total Purchase Value")
-age_average = purchase_data.groupby(["Age Ranges"]).mean()["Price"].rename("Average Purchase Price")
-age_counts = purchase_data.groupby(["Age Ranges"]).count()["Price"].rename("Purchase Count")
+* Create a table that highlights the bottom 5 performing schools based on Overall Passing Rate. Include all of the same metrics as above.
 
-# Calculate Normalized Purchasing
-normalized_total = age_purchase_total / age_demographics["Total Count"]
+**Math Scores by Grade**
 
-# Convert to DataFrame
-age_data = pd.DataFrame({"Purchase Count": age_counts, "Average Purchase Price": age_average, "Total Purchase Value": age_purchase_total, "Normalized Totals": normalized_total})
+* Create a table that lists the average Math Score for students of each grade level (9th, 10th, 11th, 12th) at each school.
 
-# Minor Data Munging
-age_data["Average Purchase Price"] = age_data["Average Purchase Price"].map("${:,.2f}".format)
-age_data["Total Purchase Value"] = age_data["Total Purchase Value"].map("${:,.2f}".format)
-age_data ["Purchase Count"] = age_data["Purchase Count"].map("{:,}".format)
-age_data["Normalized Totals"] = age_data["Normalized Totals"].map("${:,.2f}".format)
-age_data = age_data.loc[:, ["Purchase Count", "Average Purchase Price", "Total Purchase Value", "Normalized Totals"]]
+**Reading Scores by Grade**
 
-# Display the Age Table
-age_data
-```
+* Create a table that lists the average Reading Score for students of each grade level (9th, 10th, 11th, 12th) at each school.
 
-<div>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>Purchase Count</th>
-      <th>Average Purchase Price</th>
-      <th>Total Purchase Value</th>
-      <th>Normalized Totals</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>10-14</th>
-      <td>9,595</td>
-      <td>$2.99</td>
-      <td>$28,677.10</td>
-      <td>$494.43</td>
-    </tr>
-    <tr>
-      <th>15-19</th>
-      <td>34,149</td>
-      <td>$2.98</td>
-      <td>$101,921.28</td>
-      <td>$492.37</td>
-    </tr>
-    <tr>
-      <th>20-24</th>
-      <td>81,029</td>
-      <td>$2.97</td>
-      <td>$240,883.91</td>
-      <td>$492.61</td>
-    </tr>
-    <tr>
-      <th>25-29</th>
-      <td>29,560</td>
-      <td>$2.97</td>
-      <td>$87,867.54</td>
-      <td>$488.15</td>
-    </tr>
-    <tr>
-      <th>30-34</th>
-      <td>16,863</td>
-      <td>$2.98</td>
-      <td>$50,205.29</td>
-      <td>$492.21</td>
-    </tr>
-    <tr>
-      <th>35-39</th>
-      <td>10,402</td>
-      <td>$2.98</td>
-      <td>$30,970.57</td>
-      <td>$491.60</td>
-    </tr>
-    <tr>
-      <th>40+</th>
-      <td>2,870</td>
-      <td>$2.97</td>
-      <td>$8,515.10</td>
-      <td>$473.06</td>
-    </tr>
-    <tr>
-      <th>&lt;10</th>
-      <td>7,588</td>
-      <td>$2.98</td>
-      <td>$22,613.56</td>
-      <td>$491.60</td>
-    </tr>
-  </tbody>
-</table>
-</div>
+**Scores by School Spending**
 
-## Top Spenders
+* Create a table that breaks down school performances based on average Spending Ranges (Per Student). Use 4 reasonable bins to group school spending. Include in the table each of the following:
+  * Average Math Score
+  * Average Reading Score
+  * % Passing Math
+  * % Passing Reading
+  * Overall Passing Rate (Average of the above two)
 
-```python
-# Basic Calculations
-user_total = purchase_data.groupby(["SN"]).sum()["Price"].rename("Total Purchase Value")
-user_average = purchase_data.groupby(["SN"]).mean()["Price"].rename("Average Purchase Price")
-user_count = purchase_data.groupby(["SN"]).count()["Price"].rename("Purchase Count")
+**Scores by School Size**
 
-# Convert to DataFrame
-user_data = pd.DataFrame({"Total Purchase Value": user_total, "Average Purchase Price": user_average, "Purchase Count": user_count})
+* Repeat the above breakdown, but this time group schools based on a reasonable approximation of school size (Small, Medium, Large).
 
-# Minor Data Munging
-user_data["Average Purchase Price"] = user_data["Average Purchase Price"].map("${:,.2f}".format)
-user_data["Total Purchase Value"] = user_data["Total Purchase Value"].map("${:,.2f}".format)
-user_data = user_data.loc[:,["Purchase Count", "Average Purchase Price", "Total Purchase Value"]]
+**Scores by School Type**
 
+* Repeat the above breakdown, but this time group schools based on school type (Charter vs. District).
 
-# Display Table
-user_data.sort_values("Total Purchase Value", ascending=False).head(5)
-```
+As final considerations:
 
-<div>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>Purchase Count</th>
-      <th>Average Purchase Price</th>
-      <th>Total Purchase Value</th>
-    </tr>
-    <tr>
-      <th>SN</th>
-      <th></th>
-      <th></th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>Lisosia93</th>
-      <td>325</td>
-      <td>$2.96</td>
-      <td>$962.08</td>
-    </tr>
-    <tr>
-      <th>Yasur85</th>
-      <td>204</td>
-      <td>$2.97</td>
-      <td>$604.87</td>
-    </tr>
-    <tr>
-      <th>Lisilsa68</th>
-      <td>201</td>
-      <td>$3.01</td>
-      <td>$604.66</td>
-    </tr>
-    <tr>
-      <th>Lirtossa84</th>
-      <td>192</td>
-      <td>$3.13</td>
-      <td>$601.16</td>
-    </tr>
-    <tr>
-      <th>Hyaduesu61</th>
-      <td>198</td>
-      <td>$3.03</td>
-      <td>$600.43</td>
-    </tr>
-  </tbody>
-</table>
-</div>
+* Your script must work for both data-sets given.
+* You must use the Pandas Library and the Jupyter Notebook.
+* You must submit a link to your Jupyter Notebook with the viewable Data Frames. 
+* You must include an exported markdown version of your Notebook called  `README.md` in your GitHub repository.  
+* You must include a written description of three observable trends based on the data. 
+* See [Example Solution](PyCitySchools/PyCitySchools_Example.pdf) for a reference on the expected format. 
 
-## Most Popular Items
+## Hints and Considerations
 
-```python
-# Extract item Data
-item_data = purchase_data.loc[:,["Item ID", "Item Name", "Price"]]
+* These are challenging activities for a number of reasons. For one, these activities will require you to analyze thousands of records. Hacking through the data to look for obvious trends in Excel is just not a feasible option. The size of the data may seem daunting, but Python Pandas will allow you to efficiently parse through it. 
 
-# Perform basic calculations
-total_item_purchase = item_data.groupby(["Item ID", "Item Name"]).sum()["Price"].rename("Total Purchase Value")
-average_item_purchase = item_data.groupby(["Item ID", "Item Name"]).mean()["Price"]
-item_count = item_data.groupby(["Item ID", "Item Name"]).count()["Price"].rename("Purchase Count")
+* Second, these activities will also challenge you by requiring you to learn on your feet. Don't fool yourself into thinking: "I need to study Pandas more closely before diving in." Get the basic gist of the library and then _immediately_ get to work. When facing a daunting task, it's easy to think: "I'm just not ready to tackle it yet." But that's the surest way to never succeed. Learning to program requires one to constantly tinker, experiment, and learn on the fly. You are doing exactly the _right_ thing, if you find yourself constantly practicing Google-Fu and diving into documentation. There is just no way (or reason) to try and memorize it all. Online references are available for you to use when you need them. So use them!
 
-# Minor Data Munging
-item_data_pd = pd.DataFrame({"Total Purchase Value": total_item_purchase, "Item Price": average_item_purchase, "Purchase Count": item_count})
-item_data_pd["Item Price"] = item_data_pd["Item Price"].map("${:,.2f}".format)
-item_data_pd ["Purchase Count"] = item_data_pd["Purchase Count"].map("{:,}".format)
-item_data_pd["Total Purchase Value"] = item_data_pd["Total Purchase Value"].map("${:,.2f}".format)
-item_data_pd = item_data_pd.loc[:,["Purchase Count", "Item Price", "Total Purchase Value"]]
+* Take each of these tasks one at a time. Begin your work, answering the basic questions: "How do I import the data?" "How do I convert the data into a DataFrame?" "How do I build the first table?" Don't get intimidated by the number of asks. Many of them are repetitive in nature with just a few tweaks. Be persistent and creative!
 
-# Display the Item Table
-item_data_pd.sort_values("Purchase Count", ascending=False).head(5)
-```
+* Expect these exercises to take time! Don't get discouraged if you find yourself spending  hours initially with little progress. Force yourself to deal with the discomfort of not knowing and forge ahead. This exercise is likely to take between 15-30 hours of your time. Consider these hours an investment in your future!
 
-<div>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th></th>
-      <th>Purchase Count</th>
-      <th>Item Price</th>
-      <th>Total Purchase Value</th>
-    </tr>
-    <tr>
-      <th>Item ID</th>
-      <th>Item Name</th>
-      <th></th>
-      <th></th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>126</th>
-      <th>Exiled Mithril Longsword</th>
-      <td>997</td>
-      <td>$3.55</td>
-      <td>$3,539.35</td>
-    </tr>
-    <tr>
-      <th>9</th>
-      <th>Thorn, Conqueror of the Corrupted</th>
-      <td>996</td>
-      <td>$3.30</td>
-      <td>$3,286.80</td>
-    </tr>
-    <tr>
-      <th>182</th>
-      <th>Toothpick</th>
-      <td>996</td>
-      <td>$4.16</td>
-      <td>$4,143.36</td>
-    </tr>
-    <tr>
-      <th>13</th>
-      <th>Serenity</th>
-      <td>995</td>
-      <td>$4.13</td>
-      <td>$4,109.35</td>
-    </tr>
-    <tr>
-      <th>109</th>
-      <th>Downfall, Scalpel Of The Emperor</th>
-      <td>994</td>
-      <td>$3.80</td>
-      <td>$3,777.20</td>
-    </tr>
-  </tbody>
-</table>
-</div>
+* As always, feel encouraged to work in groups and get help from your TAs and Instructor. Just remember, true success comes from mastery and _not_ a completed homework assignment. So challenge yourself to truly succeed!
 
-## Most Profitable Items
+## Copyright
 
-```python
-# Minor Data Munging
-
-# Display the Item Table (Sorted by Total Purchase Value)
-item_data_pd.sort_values("Total Purchase Value", ascending=False).head(5)
-```
-
-<div>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th></th>
-      <th>Purchase Count</th>
-      <th>Item Price</th>
-      <th>Total Purchase Value</th>
-    </tr>
-    <tr>
-      <th>Item ID</th>
-      <th>Item Name</th>
-      <th></th>
-      <th></th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>153</th>
-      <th>Mercenary Sabre</th>
-      <td>1,105</td>
-      <td>$4.89</td>
-      <td>$5,403.45</td>
-    </tr>
-    <tr>
-      <th>15</th>
-      <th>Soul Infused Crystal</th>
-      <td>1,091</td>
-      <td>$4.94</td>
-      <td>$5,389.54</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <th>Verdict</th>
-      <td>1,060</td>
-      <td>$4.99</td>
-      <td>$5,289.40</td>
-    </tr>
-    <tr>
-      <th>149</th>
-      <th>Tranquility, Razor of Black Magic</th>
-      <td>1,068</td>
-      <td>$4.86</td>
-      <td>$5,190.48</td>
-    </tr>
-    <tr>
-      <th>121</th>
-      <th>Massacre</th>
-      <td>1,054</td>
-      <td>$4.91</td>
-      <td>$5,175.14</td>
-    </tr>
-  </tbody>
-</table>
-</div>
+Coding Boot Camp (C) 2016. All Rights Reserved.
