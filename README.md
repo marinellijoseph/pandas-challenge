@@ -1,127 +1,38 @@
+# Heroes Of Pymoli Data Analysis
 
+* Of the 1163 active players, the vast majority are male (82%). There also exists, a smaller, but notable proportion of female players (16%).
+
+* Our peak age demographic falls between 20-24 (42%) with secondary groups falling between 15-19 (17.80%) and 25-29 (15.48%).
+
+* Our players are putting in significant cash during the lifetime of their gameplay. Across all major age and gender demographics, the average purchase for a user is roughly $491.   
+
+- - -
 
 ```python
+# Dependencies and Setup
 import pandas as pd
 import numpy as np
+
+# File to Load (Remember to Change These)
+file_to_load_json = "raw_data/purchase_data.json"
+
+# Read Purchasing File and store into Pandas data frame
+purchase_data = pd.read_json(file_to_load_json, orient="records")
 ```
-
-
-```python
-# Reference the file where the json is located
-json_path = "purchase_data2.json"
-
-# Import the data into a Pandas DataFrame
-hero_data = pd.read_json(json_path)
-hero_data.head()
-```
-
-
-
-
-<div>
-<style>
-    .dataframe thead tr:only-child th {
-        text-align: right;
-    }
-
-    .dataframe thead th {
-        text-align: left;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>Age</th>
-      <th>Gender</th>
-      <th>Item ID</th>
-      <th>Item Name</th>
-      <th>Price</th>
-      <th>SN</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>20</td>
-      <td>Male</td>
-      <td>93</td>
-      <td>Apocalyptic Battlescythe</td>
-      <td>4.49</td>
-      <td>Iloni35</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>21</td>
-      <td>Male</td>
-      <td>12</td>
-      <td>Dawne</td>
-      <td>3.36</td>
-      <td>Aidaira26</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>17</td>
-      <td>Male</td>
-      <td>5</td>
-      <td>Putrid Fan</td>
-      <td>2.63</td>
-      <td>Irim47</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>17</td>
-      <td>Male</td>
-      <td>123</td>
-      <td>Twilight's Carver</td>
-      <td>2.55</td>
-      <td>Irith83</td>
-    </tr>
-    <tr>
-      <th>4</th>
-      <td>22</td>
-      <td>Male</td>
-      <td>154</td>
-      <td>Feral Katana</td>
-      <td>4.11</td>
-      <td>Philodil43</td>
-    </tr>
-  </tbody>
-</table>
-</div>
-
-
 
 ## Player Count
 
-
 ```python
-players = hero_data["SN"].nunique()
-Player_Count = pd.DataFrame({"Total Players": [players]})
-Player_Count
+# Calculate the Number of Unique Players
+player_demographics = purchase_data.loc[:, ["Gender", "SN", "Age"]]
+player_demographics = player_demographics.drop_duplicates()
+num_players = player_demographics.count()[0]
+
+# Display the total number of players
+pd.DataFrame({"Total Players": [num_players]})
 ```
 
-
-
-
 <div>
-<style>
-    .dataframe thead tr:only-child th {
-        text-align: right;
-    }
-
-    .dataframe thead th {
-        text-align: left;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-</style>
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
@@ -132,55 +43,39 @@ Player_Count
   <tbody>
     <tr>
       <th>0</th>
-      <td>74</td>
+      <td>1163</td>
     </tr>
   </tbody>
 </table>
 </div>
 
-
-
 ## Purchasing Analysis (Total)
 
-
 ```python
-# unique items
-unique_items = hero_data["Item ID"].nunique()
-# average price
-average_price = hero_data["Price"].mean()
-# number of purchases
-total_purchases = hero_data["SN"].nunique()
-# total revenue
-total_revenue = hero_data["Price"].sum()
+# Run basic calculations
+average_item_price = purchase_data["Price"].mean()
+total_purchase_value = purchase_data["Price"].sum()
+purchase_count = purchase_data["Price"].count()
+item_count = len(purchase_data["Item ID"].unique())
 
-# new table
-Purchasing_Analysis = pd.DataFrame({"Number of Unique Items": [unique_items],
-                                   "Average Price": [average_price],
-                                   "Number of Purchases": [total_purchases],
-                                   "Total Revenue": [total_revenue]
-})
-Purchasing_Analysis = Purchasing_Analysis[["Number of Unique Items", "Average Price", "Number of Purchases", "Total Revenue"]]
-Purchasing_Analysis = Purchasing_Analysis.round(2)
-Purchasing_Analysis
+# Create a DataFrame to hold results
+summary_table = pd.DataFrame({"Number of Unique Items": item_count,
+                              "Total Revenue": [total_purchase_value],
+                              "Number of Purchases": [purchase_count],
+                              "Average Price": [average_item_price]})
+
+# Minor Data Munging
+summary_table = summary_table.round(2)
+summary_table ["Average Price"] = summary_table["Average Price"].map("${:,.2f}".format)
+summary_table ["Number of Purchases"] = summary_table["Number of Purchases"].map("{:,}".format)
+summary_table ["Total Revenue"] = summary_table["Total Revenue"].map("${:,.2f}".format)
+summary_table = summary_table.loc[:,["Number of Unique Items", "Average Price", "Number of Purchases", "Total Revenue"]]
+
+# Display the summary_table
+summary_table
 ```
 
-
-
-
 <div>
-<style>
-    .dataframe thead tr:only-child th {
-        text-align: right;
-    }
-
-    .dataframe thead th {
-        text-align: left;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-</style>
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
@@ -194,775 +89,518 @@ Purchasing_Analysis
   <tbody>
     <tr>
       <th>0</th>
-      <td>64</td>
-      <td>2.92</td>
-      <td>74</td>
-      <td>228.1</td>
+      <td>184</td>
+      <td>$2.98</td>
+      <td>192,056</td>
+      <td>$571,654.35</td>
     </tr>
   </tbody>
 </table>
 </div>
 
-
-
 ## Gender Demographics
 
-
 ```python
-# count of total and genders
-total_gender = hero_data["Gender"].count()
-male = hero_data["Gender"].value_counts()["Male"]
-female = hero_data["Gender"].value_counts()["Female"]
-other = (total_gender - male - female)
-# calculate percentages
-male_percent = male/total_gender * 100
-female_percent = female/total_gender* 100
-other_percent = other/total_gender* 100
+# Calculate the Number and Percentage by Gender
+gender_demographics_totals = player_demographics["Gender"].value_counts()
+gender_demographics_percents = gender_demographics_totals / num_players * 100
+gender_demographics = pd.DataFrame({"Total Count": gender_demographics_totals, "Percentage of Players": gender_demographics_percents})
 
-# new table
-Gender_Demographics = pd.DataFrame({"Gender": ["Male", "Female", "Other"],
-                                   "Percentage of Players": [male_percent,female_percent, other_percent],
-                                   "Total Count": [male,female, other]
-})
-Gender_Demographics = Gender_Demographics.round(2)
-Gender_Demographics = Gender_Demographics[["Gender", "Percentage of Players","Total Count"]]
-Gender_Demographics
+# Minor Data Munging
+gender_demographics = gender_demographics.round(2)
 
+gender_demographics
 ```
 
-
-
-
 <div>
-<style>
-    .dataframe thead tr:only-child th {
-        text-align: right;
-    }
-
-    .dataframe thead th {
-        text-align: left;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-</style>
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
       <th></th>
-      <th>Gender</th>
       <th>Percentage of Players</th>
       <th>Total Count</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <th>0</th>
-      <td>Male</td>
-      <td>82.05</td>
-      <td>64</td>
+      <th>Male</th>
+      <td>81.94</td>
+      <td>953</td>
     </tr>
     <tr>
-      <th>1</th>
-      <td>Female</td>
-      <td>16.67</td>
-      <td>13</td>
+      <th>Female</th>
+      <td>16.08</td>
+      <td>187</td>
     </tr>
     <tr>
-      <th>2</th>
-      <td>Other</td>
-      <td>1.28</td>
-      <td>1</td>
+      <th>Other / Non-Disclosed</th>
+      <td>1.98</td>
+      <td>23</td>
     </tr>
   </tbody>
 </table>
 </div>
 
-
-
 ## Purchasing Analysis (Gender)
 
-
 ```python
-# extract gender dfs
-male_data = hero_data.loc[hero_data["Gender"] == "Male"]
-female_data = hero_data.loc[hero_data["Gender"] == "Female"]
-other_data = hero_data.loc[hero_data["Gender"] == "Other / Non-Disclosed"]
+# Run basic calculations
+gender_purchase_total = purchase_data.groupby(["Gender"]).sum()["Price"].rename("Total Purchase Value")
+gender_average = purchase_data.groupby(["Gender"]).mean()["Price"].rename("Average Purchase Price")
+gender_counts = purchase_data.groupby(["Gender"]).count()["Price"].rename("Purchase Count")
 
-# average price per gender 
-average_male = male_data["Price"].mean()
-average_female = female_data["Price"].mean()
-average_other = other_data["Price"].mean()
+# Calculate Normalized Purchasing
+normalized_total = gender_purchase_total / gender_demographics["Total Count"]
 
-# total purchase value
-total_male = male_data["Price"].sum()
-total_female = female_data["Price"].sum()
-total_other = other_data["Price"].sum()
+# Convert to DataFrame
+gender_data = pd.DataFrame({"Purchase Count": gender_counts, "Average Purchase Price": gender_average, "Total Purchase Value": gender_purchase_total, "Normalized Totals": normalized_total})
 
+# Minor Data Munging
+gender_data["Average Purchase Price"] = gender_data["Average Purchase Price"].map("${:,.2f}".format)
+gender_data["Total Purchase Value"] = gender_data["Total Purchase Value"].map("${:,.2f}".format)
+gender_data ["Purchase Count"] = gender_data["Purchase Count"].map("{:,}".format)
+gender_data["Normalized Totals"] = gender_data["Normalized Totals"].map("${:,.2f}".format)
+gender_data = gender_data.loc[:, ["Purchase Count", "Average Purchase Price", "Total Purchase Value", "Normalized Totals"]]
 
-# normalized totals???
-
-
-Purchasing_Analysis_Gender = pd.DataFrame({"Gender": ["Male", "Female", "Other"], 
-                                        "Purchase Count": [male, female, other],
-                                        "Average Purchase Price":[average_male, average_female, average_other],
-                                        "Total Purchase Value":[total_male, total_female, total_other]})
-#                                        "Normalized Totals":[]
-#                                            })
-Purchasing_Analysis_Gender = Purchasing_Analysis_Gender.round(2)
-Purchasing_Analysis_Gender = Purchasing_Analysis_Gender[["Gender", "Purchase Count", "Average Purchase Price", "Total Purchase Value"]]
-Purchasing_Analysis_Gender
+# Display the Gender Table
+gender_data
 ```
 
-
-
-
 <div>
-<style>
-    .dataframe thead tr:only-child th {
-        text-align: right;
-    }
-
-    .dataframe thead th {
-        text-align: left;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-</style>
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
       <th></th>
+      <th>Purchase Count</th>
+      <th>Average Purchase Price</th>
+      <th>Total Purchase Value</th>
+      <th>Normalized Totals</th>
+    </tr>
+    <tr>
       <th>Gender</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>Female</th>
+      <td>30,894</td>
+      <td>$2.98</td>
+      <td>$92,130.15</td>
+      <td>$492.67</td>
+    </tr>
+    <tr>
+      <th>Male</th>
+      <td>157,426</td>
+      <td>$2.98</td>
+      <td>$468,404.32</td>
+      <td>$491.51</td>
+    </tr>
+    <tr>
+      <th>Other / Non-Disclosed</th>
+      <td>3,736</td>
+      <td>$2.98</td>
+      <td>$11,119.88</td>
+      <td>$483.47</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+## Age Demographics
+
+```python
+# Establish the bins 
+age_bins = [0, 9.90, 14.90, 19.90, 24.90, 29.90, 34.90, 39.90, 99999]
+group_names = ["<10", "10-14", "15-19", "20-24", "25-29", "30-34", "35-39", "40+"]
+
+# Categorize the existing players using the age bins
+player_demographics["Age Ranges"] = pd.cut(player_demographics["Age"], age_bins, labels=group_names)
+
+# Calculate the Numbers and Percentages by Age Group
+age_demographics_totals = player_demographics["Age Ranges"].value_counts()
+age_demographics_percents = age_demographics_totals / num_players * 100
+age_demographics = pd.DataFrame({"Total Count": age_demographics_totals, "Percentage of Players": age_demographics_percents})
+
+# Minor Data Munging
+age_demographics = age_demographics.round(2)
+
+# Display Age Demographics Table
+age_demographics.sort_index()
+```
+
+<div>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Percentage of Players</th>
+      <th>Total Count</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>&lt;10</th>
+      <td>3.96</td>
+      <td>46</td>
+    </tr>
+    <tr>
+      <th>10-14</th>
+      <td>4.99</td>
+      <td>58</td>
+    </tr>
+    <tr>
+      <th>15-19</th>
+      <td>17.80</td>
+      <td>207</td>
+    </tr>
+    <tr>
+      <th>20-24</th>
+      <td>42.05</td>
+      <td>489</td>
+    </tr>
+    <tr>
+      <th>25-29</th>
+      <td>15.48</td>
+      <td>180</td>
+    </tr>
+    <tr>
+      <th>30-34</th>
+      <td>8.77</td>
+      <td>102</td>
+    </tr>
+    <tr>
+      <th>35-39</th>
+      <td>5.42</td>
+      <td>63</td>
+    </tr>
+    <tr>
+      <th>40+</th>
+      <td>1.55</td>
+      <td>18</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+## Purchasing Analysis (Age)
+
+```python
+# Bin the Purchasing Data
+purchase_data["Age Ranges"] = pd.cut(purchase_data["Age"], age_bins, labels=group_names)
+
+# Run basic calculations
+age_purchase_total = purchase_data.groupby(["Age Ranges"]).sum()["Price"].rename("Total Purchase Value")
+age_average = purchase_data.groupby(["Age Ranges"]).mean()["Price"].rename("Average Purchase Price")
+age_counts = purchase_data.groupby(["Age Ranges"]).count()["Price"].rename("Purchase Count")
+
+# Calculate Normalized Purchasing
+normalized_total = age_purchase_total / age_demographics["Total Count"]
+
+# Convert to DataFrame
+age_data = pd.DataFrame({"Purchase Count": age_counts, "Average Purchase Price": age_average, "Total Purchase Value": age_purchase_total, "Normalized Totals": normalized_total})
+
+# Minor Data Munging
+age_data["Average Purchase Price"] = age_data["Average Purchase Price"].map("${:,.2f}".format)
+age_data["Total Purchase Value"] = age_data["Total Purchase Value"].map("${:,.2f}".format)
+age_data ["Purchase Count"] = age_data["Purchase Count"].map("{:,}".format)
+age_data["Normalized Totals"] = age_data["Normalized Totals"].map("${:,.2f}".format)
+age_data = age_data.loc[:, ["Purchase Count", "Average Purchase Price", "Total Purchase Value", "Normalized Totals"]]
+
+# Display the Age Table
+age_data
+```
+
+<div>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Purchase Count</th>
+      <th>Average Purchase Price</th>
+      <th>Total Purchase Value</th>
+      <th>Normalized Totals</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>10-14</th>
+      <td>9,595</td>
+      <td>$2.99</td>
+      <td>$28,677.10</td>
+      <td>$494.43</td>
+    </tr>
+    <tr>
+      <th>15-19</th>
+      <td>34,149</td>
+      <td>$2.98</td>
+      <td>$101,921.28</td>
+      <td>$492.37</td>
+    </tr>
+    <tr>
+      <th>20-24</th>
+      <td>81,029</td>
+      <td>$2.97</td>
+      <td>$240,883.91</td>
+      <td>$492.61</td>
+    </tr>
+    <tr>
+      <th>25-29</th>
+      <td>29,560</td>
+      <td>$2.97</td>
+      <td>$87,867.54</td>
+      <td>$488.15</td>
+    </tr>
+    <tr>
+      <th>30-34</th>
+      <td>16,863</td>
+      <td>$2.98</td>
+      <td>$50,205.29</td>
+      <td>$492.21</td>
+    </tr>
+    <tr>
+      <th>35-39</th>
+      <td>10,402</td>
+      <td>$2.98</td>
+      <td>$30,970.57</td>
+      <td>$491.60</td>
+    </tr>
+    <tr>
+      <th>40+</th>
+      <td>2,870</td>
+      <td>$2.97</td>
+      <td>$8,515.10</td>
+      <td>$473.06</td>
+    </tr>
+    <tr>
+      <th>&lt;10</th>
+      <td>7,588</td>
+      <td>$2.98</td>
+      <td>$22,613.56</td>
+      <td>$491.60</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+## Top Spenders
+
+```python
+# Basic Calculations
+user_total = purchase_data.groupby(["SN"]).sum()["Price"].rename("Total Purchase Value")
+user_average = purchase_data.groupby(["SN"]).mean()["Price"].rename("Average Purchase Price")
+user_count = purchase_data.groupby(["SN"]).count()["Price"].rename("Purchase Count")
+
+# Convert to DataFrame
+user_data = pd.DataFrame({"Total Purchase Value": user_total, "Average Purchase Price": user_average, "Purchase Count": user_count})
+
+# Minor Data Munging
+user_data["Average Purchase Price"] = user_data["Average Purchase Price"].map("${:,.2f}".format)
+user_data["Total Purchase Value"] = user_data["Total Purchase Value"].map("${:,.2f}".format)
+user_data = user_data.loc[:,["Purchase Count", "Average Purchase Price", "Total Purchase Value"]]
+
+
+# Display Table
+user_data.sort_values("Total Purchase Value", ascending=False).head(5)
+```
+
+<div>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
       <th>Purchase Count</th>
       <th>Average Purchase Price</th>
       <th>Total Purchase Value</th>
     </tr>
-  </thead>
-  <tbody>
     <tr>
-      <th>0</th>
-      <td>Male</td>
-      <td>64</td>
-      <td>2.88</td>
-      <td>184.60</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>Female</td>
-      <td>13</td>
-      <td>3.18</td>
-      <td>41.38</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>Other</td>
-      <td>1</td>
-      <td>2.12</td>
-      <td>2.12</td>
-    </tr>
-  </tbody>
-</table>
-</div>
-
-
-
-## Age Demographics
-
-
-```python
-# Figure out the minimum and maximum ages
-print(hero_data["Age"].max())
-print(hero_data["Age"].min())
-```
-
-    40
-    7
-
-
-
-```python
-# Create bins in which to place values based on age 
-bins = [0,9,14,19,24,29,34,39,45]
-
-# Create labels for these bins
-group_labels = ["<10","10-14","15-19","20-24","25-29","30-34","35-39","40+"]
-
-# Slice the data and place it into bins
-pd.cut(hero_data["Age"],bins,labels = group_labels)
-
-# Place the data series into a new column inside of the DataFrame
-hero_data["Age Group"] = pd.cut(hero_data["Age"],bins,labels=group_labels)
-
-# extract age group dfs
-groupone_data = hero_data.loc[hero_data["Age Group"] == "<10"]
-grouptwo_data = hero_data.loc[hero_data["Age Group"] == "10-14"]
-groupthree_data = hero_data.loc[hero_data["Age Group"] == "15-19"]
-groupfour_data = hero_data.loc[hero_data["Age Group"] == "20-24"]
-groupfive_data = hero_data.loc[hero_data["Age Group"] == "25-29"]
-groupsix_data = hero_data.loc[hero_data["Age Group"]== "30-34"]
-groupseven_data = hero_data.loc[hero_data["Age Group"]== "35-39"]
-groupeight_data = hero_data.loc[hero_data["Age Group"]== "40+"]
-
-# total purchase value per age group
-total_groupone = groupone_data["Price"].sum()
-total_grouptwo = grouptwo_data["Price"].sum()
-total_groupthree = groupthree_data["Price"].sum()
-total_groupfour = groupfour_data["Price"].sum() / groupfour_data["Price"].count()
-total_groupfive = groupfive_data["Price"].sum()
-total_groupsix = groupsix_data["Price"].sum()
-total_groupseven = groupseven_data["Price"].sum()
-total_groupeight = groupeight_data["Price"].sum()
-
-# average purchase price per age group
-average_groupone = total_groupone / groupone_data["Price"].count()
-average_grouptwo = total_grouptwo / grouptwo_data["Price"].count()
-average_groupthree = total_groupthree / groupthree_data["Price"].count()
-average_groupfour = total_groupfour / groupfour_data["Price"].count()
-average_groupfive = total_groupfive / groupfive_data["Price"].count()
-average_groupsix = total_groupsix / groupsix_data["Price"].count()
-average_groupseven = total_groupseven / groupseven_data["Price"].count()
-average_groupeight = total_groupeight / groupeight_data["Price"].count()
-
-# purchase count
-count_groupone = groupone_data["Price"].count()
-count_grouptwo = grouptwo_data["Price"].count()
-count_groupthree = groupthree_data["Price"].count()
-count_groupfour = groupfour_data["Price"].count()
-count_groupfive = groupfive_data["Price"].count()
-count_groupsix = groupsix_data["Price"].count()
-count_groupseven = groupseven_data["Price"].count()
-count_groupeight = groupeight_data["Price"].count()
-```
-
-
-```python
-Age_Demographics = pd.DataFrame({"Age Group": ["<10","10-14","15-19","20-24","25-29","30-34","35-39","40+"], 
-                                "Purchase Count":[count_groupone, count_grouptwo, count_groupthree, count_groupfour, count_groupfive, count_groupsix, count_groupseven, count_groupeight], 
-                                "Average Purchase Value":[average_groupone, average_grouptwo, average_groupthree, average_groupfour, average_groupfive, average_groupsix, average_groupseven, average_groupeight], 
-                                "Total Purchase Value":[total_groupone, total_grouptwo, total_groupthree, total_groupfour, total_groupfive, total_groupsix, total_groupseven, total_groupeight]})
-
-Age_Demographics = Age_Demographics.round(2)
-Age_Demographics
-```
-
-
-
-
-<div>
-<style>
-    .dataframe thead tr:only-child th {
-        text-align: right;
-    }
-
-    .dataframe thead th {
-        text-align: left;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>Age Group</th>
-      <th>Average Purchase Value</th>
-      <th>Purchase Count</th>
-      <th>Total Purchase Value</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>&lt;10</td>
-      <td>2.76</td>
-      <td>5</td>
-      <td>13.82</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>10-14</td>
-      <td>2.99</td>
-      <td>3</td>
-      <td>8.96</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>15-19</td>
-      <td>2.76</td>
-      <td>11</td>
-      <td>30.41</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>20-24</td>
-      <td>0.08</td>
-      <td>36</td>
-      <td>3.02</td>
-    </tr>
-    <tr>
-      <th>4</th>
-      <td>25-29</td>
-      <td>2.90</td>
-      <td>9</td>
-      <td>26.11</td>
-    </tr>
-    <tr>
-      <th>5</th>
-      <td>30-34</td>
-      <td>1.98</td>
-      <td>7</td>
-      <td>13.89</td>
-    </tr>
-    <tr>
-      <th>6</th>
-      <td>35-39</td>
-      <td>3.56</td>
-      <td>6</td>
-      <td>21.37</td>
-    </tr>
-    <tr>
-      <th>7</th>
-      <td>40+</td>
-      <td>4.65</td>
-      <td>1</td>
-      <td>4.65</td>
-    </tr>
-  </tbody>
-</table>
-</div>
-
-
-
-## Top Spenders
-
-
-```python
-# Using GroupBy in order to separate the data into fields according to "SN" values
-grouped_herodata = hero_data.groupby(['SN'])
-# The object returned is a "GroupBy" object and cannot be viewed normally...
-print(grouped_herodata)
-grouped_herodata.head(10)
-top_spenders = grouped_herodata['Price'].sum().nlargest(5)
-
-#top_spenders variables
-first_spender = top_spenders.index[0]
-second_spender = top_spenders.index[1]
-third_spender = top_spenders.index[2]
-fourth_spender = top_spenders.index[3]
-fifth_spender = top_spenders.index[4]
-
-# extract first spender dataframes and calculations
-first_spender_data = hero_data.loc[hero_data["SN"] == first_spender]
-first_count = first_spender_data["Price"].count()
-first_total = first_spender_data["Price"].sum()
-first_average = first_total / first_count
-
-# extract second spender dataframes and calculations
-second_spender_data = hero_data.loc[hero_data["SN"] == second_spender]
-second_count = second_spender_data["Price"].count()
-second_total = second_spender_data["Price"].sum()
-second_average = second_total / second_count
-
-# extract third spender dataframes and calculations
-third_spender_data = hero_data.loc[hero_data["SN"] == third_spender]
-third_count = third_spender_data["Price"].count()
-third_total = third_spender_data["Price"].sum()
-third_average = third_total / third_count
-
-# extract fourth spender dataframes and calculations
-fourth_spender_data = hero_data.loc[hero_data["SN"] == fourth_spender]
-fourth_count = fourth_spender_data["Price"].count()
-fourth_total = fourth_spender_data["Price"].sum()
-fourth_average = fourth_total / fourth_count
-
-# extract fifth spender dataframes and calculations
-fifth_spender_data = hero_data.loc[hero_data["SN"] == fifth_spender]
-fifth_count = fifth_spender_data["Price"].count()
-fifth_total = fifth_spender_data["Price"].sum()
-fifth_average = fifth_total / fifth_count
-
-# new table
-Top_Spenders_Analysis = pd.DataFrame({"SN":[first_spender, second_spender, third_spender, fourth_spender,fifth_spender], 
-                                "Purchase Count":[first_count, second_count, third_count, fourth_count, fifth_count], 
-                                "Average Purchase Value":[first_average, second_average, third_average, fourth_average, fifth_average], 
-                                "Total Purchase Value":[first_total, second_total, third_total, fourth_total, fifth_total]})
-
-Top_Spenders_Analysis = Top_Spenders_Analysis.round(2)
-Top_Spenders_Analysis = Top_Spenders_Analysis[["SN", "Purchase Count", "Average Purchase Value", "Total Purchase Value"]]
-Top_Spenders_Analysis
-```
-
-    <pandas.core.groupby.DataFrameGroupBy object at 0x10dec6748>
-
-
-
-
-
-<div>
-<style>
-    .dataframe thead tr:only-child th {
-        text-align: right;
-    }
-
-    .dataframe thead th {
-        text-align: left;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
       <th>SN</th>
-      <th>Purchase Count</th>
-      <th>Average Purchase Value</th>
-      <th>Total Purchase Value</th>
+      <th></th>
+      <th></th>
+      <th></th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <th>0</th>
-      <td>Sundaky74</td>
-      <td>2</td>
-      <td>3.70</td>
-      <td>7.41</td>
+      <th>Lisosia93</th>
+      <td>325</td>
+      <td>$2.96</td>
+      <td>$962.08</td>
     </tr>
     <tr>
-      <th>1</th>
-      <td>Aidaira26</td>
-      <td>2</td>
-      <td>2.56</td>
-      <td>5.13</td>
+      <th>Yasur85</th>
+      <td>204</td>
+      <td>$2.97</td>
+      <td>$604.87</td>
     </tr>
     <tr>
-      <th>2</th>
-      <td>Eusty71</td>
-      <td>1</td>
-      <td>4.81</td>
-      <td>4.81</td>
+      <th>Lisilsa68</th>
+      <td>201</td>
+      <td>$3.01</td>
+      <td>$604.66</td>
     </tr>
     <tr>
-      <th>3</th>
-      <td>Chanirra64</td>
-      <td>1</td>
-      <td>4.78</td>
-      <td>4.78</td>
+      <th>Lirtossa84</th>
+      <td>192</td>
+      <td>$3.13</td>
+      <td>$601.16</td>
     </tr>
     <tr>
-      <th>4</th>
-      <td>Alarap40</td>
-      <td>1</td>
-      <td>4.71</td>
-      <td>4.71</td>
+      <th>Hyaduesu61</th>
+      <td>198</td>
+      <td>$3.03</td>
+      <td>$600.43</td>
     </tr>
   </tbody>
 </table>
 </div>
-
-
 
 ## Most Popular Items
 
-
 ```python
-# Using GroupBy in order to separate the data into fields according to "Item Name" values
-grouped_itemname = hero_data.groupby(['Item ID'])
-# The object returned is a "GroupBy" object and cannot be viewed normally...
-print(grouped_itemname)
-grouped_itemname.head(10)
-top_populars = grouped_itemname["Item ID"].count().nlargest(5)
+# Extract item Data
+item_data = purchase_data.loc[:,["Item ID", "Item Name", "Price"]]
 
-# top_populars variables
-first_popular = top_populars.index[0]
-second_popular = top_populars.index[1]
-third_popular = top_populars.index[2]
-fourth_popular = top_populars.index[3]
-fifth_popular = top_populars.index[4]
+# Perform basic calculations
+total_item_purchase = item_data.groupby(["Item ID", "Item Name"]).sum()["Price"].rename("Total Purchase Value")
+average_item_purchase = item_data.groupby(["Item ID", "Item Name"]).mean()["Price"]
+item_count = item_data.groupby(["Item ID", "Item Name"]).count()["Price"].rename("Purchase Count")
 
-# extract first popular dataframes and calculations
-first_popular_data = hero_data.loc[hero_data["Item ID"] == first_popular]
-first_popularprice = first_popular_data["Price"].mean()
-first_popularcount = first_popular_data["Price"].count()
-first_populartotal = first_popular_data["Price"].sum()
-first_popularname = first_popular_data["Item Name"].max()
+# Minor Data Munging
+item_data_pd = pd.DataFrame({"Total Purchase Value": total_item_purchase, "Item Price": average_item_purchase, "Purchase Count": item_count})
+item_data_pd["Item Price"] = item_data_pd["Item Price"].map("${:,.2f}".format)
+item_data_pd ["Purchase Count"] = item_data_pd["Purchase Count"].map("{:,}".format)
+item_data_pd["Total Purchase Value"] = item_data_pd["Total Purchase Value"].map("${:,.2f}".format)
+item_data_pd = item_data_pd.loc[:,["Purchase Count", "Item Price", "Total Purchase Value"]]
 
-# extract second popular dataframes and calculations
-second_popular_data = hero_data.loc[hero_data["Item ID"] == second_popular]
-second_popularprice = second_popular_data["Price"].mean()
-second_popularcount = second_popular_data["Price"].count()
-second_populartotal = second_popular_data["Price"].sum()
-second_popularname = second_popular_data["Item Name"].max()
-
-# extract third popular dataframes and calculations
-third_popular_data = hero_data.loc[hero_data["Item ID"] == third_popular]
-third_popularprice = third_popular_data["Price"].mean()
-third_popularcount = third_popular_data["Price"].count()
-third_populartotal = third_popular_data["Price"].sum()
-third_popularname = third_popular_data["Item Name"].max()
-
-# extract fourth popular dataframes and calculations
-fourth_popular_data = hero_data.loc[hero_data["Item ID"] == fourth_popular]
-fourth_popularprice = fourth_popular_data["Price"].mean()
-fourth_popularcount = fourth_popular_data["Price"].count()
-fourth_populartotal = fourth_popular_data["Price"].sum()
-fourth_popularname = fourth_popular_data["Item Name"].max()
-
-# extract fifth popular dataframes and calculations
-fifth_popular_data = hero_data.loc[hero_data["Item ID"] == fifth_popular]
-fifth_popularprice = fifth_popular_data["Price"].mean()
-fifth_popularcount = fifth_popular_data["Price"].count()
-fifth_populartotal = fifth_popular_data["Price"].sum()
-fifth_popularname = fifth_popular_data["Item Name"].max()
-
-# new table
-Top_populars_Analysis = pd.DataFrame({"Item ID":[first_popular,second_popular, third_popular, fourth_popular, fifth_popular ],
-    "Item Name":[first_popularname, second_popularname, third_popularname, fourth_popularname, fifth_popularname],
-    "Purchase Count":[first_popularcount, second_popularcount, third_popularcount, fourth_popularcount, fifth_popularcount], 
-    "Price":[first_popularprice, second_popularprice, third_popularprice, fourth_popularprice, fifth_popularprice], 
-    "Total Purchase Value":[first_populartotal, second_populartotal, third_populartotal, fourth_populartotal, fifth_populartotal]})
-
-Top_populars_Analysis = Top_populars_Analysis.round(2)
-Top_populars_Analysis = Top_populars_Analysis[["Item ID", "Item Name", "Purchase Count", "Price", "Total Purchase Value"]]
-Top_populars_Analysis
-
+# Display the Item Table
+item_data_pd.sort_values("Purchase Count", ascending=False).head(5)
 ```
 
-    <pandas.core.groupby.DataFrameGroupBy object at 0x10e0725f8>
-
-
-
-
-
 <div>
-<style>
-    .dataframe thead tr:only-child th {
-        text-align: right;
-    }
-
-    .dataframe thead th {
-        text-align: left;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-</style>
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
       <th></th>
+      <th></th>
+      <th>Purchase Count</th>
+      <th>Item Price</th>
+      <th>Total Purchase Value</th>
+    </tr>
+    <tr>
       <th>Item ID</th>
       <th>Item Name</th>
-      <th>Purchase Count</th>
-      <th>Price</th>
-      <th>Total Purchase Value</th>
+      <th></th>
+      <th></th>
+      <th></th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <th>0</th>
-      <td>94</td>
-      <td>Mourning Blade</td>
-      <td>3</td>
-      <td>3.64</td>
-      <td>10.92</td>
+      <th>126</th>
+      <th>Exiled Mithril Longsword</th>
+      <td>997</td>
+      <td>$3.55</td>
+      <td>$3,539.35</td>
     </tr>
     <tr>
-      <th>1</th>
-      <td>60</td>
-      <td>Wolf</td>
-      <td>2</td>
-      <td>2.70</td>
-      <td>5.40</td>
+      <th>9</th>
+      <th>Thorn, Conqueror of the Corrupted</th>
+      <td>996</td>
+      <td>$3.30</td>
+      <td>$3,286.80</td>
     </tr>
     <tr>
-      <th>2</th>
-      <td>64</td>
-      <td>Fusion Pummel</td>
-      <td>2</td>
-      <td>2.42</td>
-      <td>4.84</td>
+      <th>182</th>
+      <th>Toothpick</th>
+      <td>996</td>
+      <td>$4.16</td>
+      <td>$4,143.36</td>
     </tr>
     <tr>
-      <th>3</th>
-      <td>90</td>
-      <td>Betrayer</td>
-      <td>2</td>
-      <td>4.12</td>
-      <td>8.24</td>
+      <th>13</th>
+      <th>Serenity</th>
+      <td>995</td>
+      <td>$4.13</td>
+      <td>$4,109.35</td>
     </tr>
     <tr>
-      <th>4</th>
-      <td>93</td>
-      <td>Apocalyptic Battlescythe</td>
-      <td>2</td>
-      <td>4.49</td>
-      <td>8.98</td>
+      <th>109</th>
+      <th>Downfall, Scalpel Of The Emperor</th>
+      <td>994</td>
+      <td>$3.80</td>
+      <td>$3,777.20</td>
     </tr>
   </tbody>
 </table>
 </div>
-
-
 
 ## Most Profitable Items
 
-
 ```python
-# find top 5 profitable item IDs
-top_profitable = grouped_itemname["Price"].sum().nlargest(5)
+# Minor Data Munging
 
-# top_profitables variables of item ID
-first_profitable = top_profitable.index[0]
-second_profitable = top_profitable.index[1]
-third_profitable = top_profitable.index[2]
-fourth_profitable = top_profitable.index[3]
-fifth_profitable = top_profitable.index[4]
-
-# extract first profitable dataframes and calculations
-first_profitable_data = hero_data.loc[hero_data["Item ID"] == first_profitable]
-first_profitableprice = first_profitable_data["Price"].mean()
-first_profitablecount = first_profitable_data["Price"].count()
-first_profitabletotal = first_profitable_data["Price"].sum()
-first_profitablename = first_profitable_data["Item Name"].max()
-
-# extract second profitable dataframes and calculations
-second_profitable_data = hero_data.loc[hero_data["Item ID"] == second_profitable]
-second_profitableprice = second_profitable_data["Price"].mean()
-second_profitablecount = second_profitable_data["Price"].count()
-second_profitabletotal = second_profitable_data["Price"].sum()
-second_profitablename = second_profitable_data["Item Name"].max()
-
-# extract third profitable dataframes and calculations
-third_profitable_data = hero_data.loc[hero_data["Item ID"] == third_profitable]
-third_profitableprice = third_profitable_data["Price"].mean()
-third_profitablecount = third_profitable_data["Price"].count()
-third_profitabletotal = third_profitable_data["Price"].sum()
-third_profitablename = third_profitable_data["Item Name"].max()
-
-# extract fourth profitable dataframes and calculations
-fourth_profitable_data = hero_data.loc[hero_data["Item ID"] == fourth_profitable]
-fourth_profitableprice = fourth_profitable_data["Price"].mean()
-fourth_profitablecount = fourth_profitable_data["Price"].count()
-fourth_profitabletotal = fourth_profitable_data["Price"].sum()
-fourth_profitablename = fourth_profitable_data["Item Name"].max()
-
-# extract fifth profitable dataframes and calculations
-fifth_profitable_data = hero_data.loc[hero_data["Item ID"] == fifth_profitable]
-fifth_profitableprice = fifth_profitable_data["Price"].mean()
-fifth_profitablecount = fifth_profitable_data["Price"].count()
-fifth_profitabletotal = fifth_profitable_data["Price"].sum()
-fifth_profitablename = fifth_profitable_data["Item Name"].max()
-
-# new table
-Top_profitable_Analysis = pd.DataFrame({"Item ID":[first_profitable,second_profitable, third_profitable, fourth_profitable, fifth_profitable ],
-    "Item Name":[first_profitablename, second_profitablename, third_profitablename, fourth_profitablename, fifth_profitablename],
-    "Purchase Count":[first_profitablecount, second_profitablecount, third_profitablecount, fourth_profitablecount, fifth_profitablecount], 
-    "Price":[first_profitableprice, second_profitableprice, third_profitableprice, fourth_profitableprice, fifth_profitableprice], 
-    "Total Purchase Value":[first_profitabletotal, second_profitabletotal, third_profitabletotal, fourth_profitabletotal, fifth_profitabletotal]})
-
-Top_profitable_Analysis = Top_profitable_Analysis.round(2)
-Top_profitable_Analysis = Top_profitable_Analysis[["Item ID", "Item Name", "Purchase Count", "Price", "Total Purchase Value"]]
-Top_profitable_Analysis
-
-Top_profitable_Analysis = Top_profitable_Analysis.round(2)
-Top_profitable_Analysis = Top_profitable_Analysis[["Item ID", "Item Name", "Purchase Count", "Price", "Total Purchase Value"]]
-Top_profitable_Analysis
-
+# Display the Item Table (Sorted by Total Purchase Value)
+item_data_pd.sort_values("Total Purchase Value", ascending=False).head(5)
 ```
 
-
-
-
 <div>
-<style>
-    .dataframe thead tr:only-child th {
-        text-align: right;
-    }
-
-    .dataframe thead th {
-        text-align: left;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-</style>
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
       <th></th>
+      <th></th>
+      <th>Purchase Count</th>
+      <th>Item Price</th>
+      <th>Total Purchase Value</th>
+    </tr>
+    <tr>
       <th>Item ID</th>
       <th>Item Name</th>
-      <th>Purchase Count</th>
-      <th>Price</th>
-      <th>Total Purchase Value</th>
+      <th></th>
+      <th></th>
+      <th></th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <th>0</th>
-      <td>94</td>
-      <td>Mourning Blade</td>
-      <td>3</td>
-      <td>3.64</td>
-      <td>10.92</td>
+      <th>153</th>
+      <th>Mercenary Sabre</th>
+      <td>1,105</td>
+      <td>$4.89</td>
+      <td>$5,403.45</td>
     </tr>
     <tr>
-      <th>1</th>
-      <td>117</td>
-      <td>Heartstriker, Legacy of the Light</td>
-      <td>2</td>
-      <td>4.71</td>
-      <td>9.42</td>
+      <th>15</th>
+      <th>Soul Infused Crystal</th>
+      <td>1,091</td>
+      <td>$4.94</td>
+      <td>$5,389.54</td>
     </tr>
     <tr>
       <th>2</th>
-      <td>93</td>
-      <td>Apocalyptic Battlescythe</td>
-      <td>2</td>
-      <td>4.49</td>
-      <td>8.98</td>
+      <th>Verdict</th>
+      <td>1,060</td>
+      <td>$4.99</td>
+      <td>$5,289.40</td>
     </tr>
     <tr>
-      <th>3</th>
-      <td>90</td>
-      <td>Betrayer</td>
-      <td>2</td>
-      <td>4.12</td>
-      <td>8.24</td>
+      <th>149</th>
+      <th>Tranquility, Razor of Black Magic</th>
+      <td>1,068</td>
+      <td>$4.86</td>
+      <td>$5,190.48</td>
     </tr>
     <tr>
-      <th>4</th>
-      <td>154</td>
-      <td>Feral Katana</td>
-      <td>2</td>
-      <td>4.11</td>
-      <td>8.22</td>
+      <th>121</th>
+      <th>Massacre</th>
+      <td>1,054</td>
+      <td>$4.91</td>
+      <td>$5,175.14</td>
     </tr>
   </tbody>
 </table>
 </div>
-
-
-
-## Three Observable Trends
-
-
-```python
-# Three observable trends
-# 1. Mostly males purchased items
-# 2. 15-19 year old purchased most, then 25-29. large dropoff in 20-24 year olds, possible due to college students not affording or having time
-# 3. Purchases decline at age 30 and above, also decline at 15 and below
-
-```
-# pandas-challenge
